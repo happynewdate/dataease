@@ -125,7 +125,8 @@
                 !['picture-group', 'rich-text'].includes(element.innerType) &&
                 barShowCheck('download') &&
                 showDownload &&
-                (exportPermissions[0] || exportPermissions[1])
+                ((exportPermissions[0] && cacheExportConfig.image) ||
+                  (exportPermissions[1] && cacheExportConfig.excel))
               "
               @click.prevent
             >
@@ -146,18 +147,26 @@
                 </div>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="exportPermissions[1]" @click="exportAsExcel"
+                    <el-dropdown-item
+                      v-if="exportPermissions[1] && cacheExportConfig.excel"
+                      @click="exportAsExcel"
                       >Excel</el-dropdown-item
                     >
                     <el-dropdown-item
-                      v-if="exportPermissions[1] && element.innerType === 'table-pivot'"
+                      v-if="
+                        exportPermissions[1] &&
+                        element.innerType === 'table-pivot' &&
+                        cacheExportConfig.pivot
+                      "
                       @click="exportAsFormattedExcel"
                     >
                       <span>{{ t('visualization.excel_with_format') }}</span>
                     </el-dropdown-item>
-                    <el-dropdown-item v-if="exportPermissions[0]" @click="exportAsImage">{{
-                      t('visualization.image')
-                    }}</el-dropdown-item>
+                    <el-dropdown-item
+                      v-if="exportPermissions[0] && cacheExportConfig.image"
+                      @click="exportAsImage"
+                      >{{ t('visualization.image') }}</el-dropdown-item
+                    >
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -188,7 +197,8 @@
         !['picture-group', 'rich-text'].includes(element.innerType) &&
         barShowCheck('previewDownload') &&
         showDownload &&
-        (exportPermissions[0] || exportPermissions[1])
+        ((exportPermissions[0] && cacheExportConfig.image) ||
+          (exportPermissions[1] && cacheExportConfig.excel))
       "
     >
       <el-icon @click="downloadClick" class="bar-base-icon">
@@ -198,18 +208,24 @@
       </el-icon>
       <template #dropdown>
         <el-dropdown-menu style="width: 118px">
-          <el-dropdown-item @click="exportAsExcel" v-if="exportPermissions[1]"
+          <el-dropdown-item
+            @click="exportAsExcel"
+            v-if="exportPermissions[1] && cacheExportConfig.excel"
             >Excel</el-dropdown-item
           >
           <el-dropdown-item
-            v-if="exportPermissions[1] && element.innerType === 'table-pivot'"
+            v-if="
+              exportPermissions[1] && element.innerType === 'table-pivot' && cacheExportConfig.pivot
+            "
             @click="exportAsFormattedExcel"
           >
             <span>{{ t('visualization.excel_with_format') }}</span>
           </el-dropdown-item>
-          <el-dropdown-item v-if="exportPermissions[0]" @click="exportAsImage">{{
-            t('visualization.image')
-          }}</el-dropdown-item>
+          <el-dropdown-item
+            v-if="exportPermissions[0] && cacheExportConfig.image"
+            @click="exportAsImage"
+            >{{ t('visualization.image') }}</el-dropdown-item
+          >
         </el-dropdown-menu>
       </template>
     </el-dropdown>
@@ -256,6 +272,32 @@ const dvMainStore = dvMainStoreWithOut()
 const snapshotStore = snapshotStoreWithOut()
 const copyStore = copyStoreWithOut()
 const customTabsSortRef = ref(null)
+
+const cacheExportConfig = ref({
+  image: true,
+  excel: true,
+  raw: true,
+  pivot: true
+})
+
+const updateCacheExportConfig = () => {
+  try {
+    const cacheStr =
+      sessionStorage.getItem('DE_EXPORT_CONFIG') || localStorage.getItem('DE_EXPORT_CONFIG')
+    if (cacheStr) {
+      const config = JSON.parse(cacheStr)
+      cacheExportConfig.value = {
+        image: config.image ?? true,
+        excel: config.excel ?? true,
+        raw: config.raw ?? true,
+        pivot: config.pivot ?? true
+      }
+    }
+  } catch (e) {
+    console.warn('解析导出缓存配置 DE_EXPORT_CONFIG 失败', e)
+  }
+}
+
 const exportPermissions = computed(() =>
   exportPermission(dvInfo.value['weight'], dvInfo.value['ext'])
 )
@@ -651,6 +693,7 @@ onMounted(() => {
     eventBus.on('initCurFields-' + element.value.id, initCurFields)
   }
   initCurFields()
+  updateCacheExportConfig()
 })
 
 onBeforeUnmount(() => {

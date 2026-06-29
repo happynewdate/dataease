@@ -6,6 +6,20 @@ const { default_headers } = config
 
 const request = (option: any) => {
   const { url, method, params, data, headersType, responseType, loading } = option
+
+  let fullName = ''
+  try {
+    const userStr = localStorage.getItem('yee-user')
+    if (userStr) {
+      const userObj = JSON.parse(userStr)
+      if (userObj && userObj.fullName) {
+        fullName = userObj.fullName
+      }
+    }
+  } catch (error) {
+    console.warn('解析 yee-user 失败', error)
+  }
+
   return service({
     url: url,
     method,
@@ -14,7 +28,8 @@ const request = (option: any) => {
     data,
     responseType: responseType,
     headers: {
-      'Content-Type': headersType || default_headers
+      'Content-Type': headersType || default_headers,
+      ...(fullName ? { 'Full-Name': encodeURIComponent(fullName) } : {})
     }
   })
 }

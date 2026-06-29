@@ -32,7 +32,7 @@ setupAll()
 try {
   const customScriptUrl =
     localStorage.getItem('DE_CUSTOM_SCRIPT_URL') ||
-    'https://dataease-xj.jcsk100.com/data/custom-script.js'
+    window.location.origin + '/data/custom-script.js'
   if (customScriptUrl) {
     loadScript(customScriptUrl, 'de-custom-script')
     console.log(`自定义脚本加载成功: ${customScriptUrl}`)

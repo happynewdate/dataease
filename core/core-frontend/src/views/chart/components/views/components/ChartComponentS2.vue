@@ -30,6 +30,7 @@ import { useEmitt } from '@/hooks/web/useEmitt'
 import { isDashboard, trackBarStyleCheck } from '@/utils/canvasUtils'
 import { type SpreadSheet } from '@antv/s2'
 import { parseJson } from '../../js/util'
+import { sanitizeDialogChartData } from './sanitizeDialogChartData'
 
 const dvMainStore = dvMainStoreWithOut()
 const {
@@ -173,7 +174,9 @@ let myChart: SpreadSheet = null
 // 实际渲染的图表信息，适应缩放
 let actualChart: ChartObj
 const renderChartFromDialog = (viewInfo: Chart, chartDataInfo) => {
-  chartData.value = chartDataInfo
+  console.log(chartDataInfo, 'chartDataInfo')
+  chartData.value = sanitizeDialogChartData(chartDataInfo)
+  console.log(chartData.value, 'chartData.value')
   renderChart(viewInfo, false)
 }
 // 处理存量图表的默认值

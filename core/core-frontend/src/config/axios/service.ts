@@ -100,9 +100,6 @@ service.interceptors.request.use(
     if (config instanceof Promise) {
       config = await config
     }
-    config.headers['Yee-Admin-Info'] =
-      //'ewoidXNlciI6eyJpZCI6MTY4LCJmdWxsTmFtZSI6IuW8oOS4iSIsImlkcyI6WyIxIiwiMiIsIjMiXSwidGVuYW50SWQiOiI2MTEwNjQwNjI2MDM4MjUxNTIifQp9'
-      'ewoidXNlciI6eyJpZCI6MTY4LCJmdWxsTmFtZSI6IuW8oOS4iSIsImlkcyI6WyIxIiwiMiIsIjMiXSwidGVuYW50SWQiOiI2MTEwNjQwNjI2MDM4MjUxNTIifSwiaWRzIjpbIjYxMzY1Mjc1Mzk4OTg5ODI0MCIsIjYxMzY1MjgxMzM3Mjg1NDI3MiJdCn0='
     if (
       config.method === 'post' &&
       (config.headers as AxiosRequestHeaders)['Content-Type'] ===

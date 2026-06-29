@@ -14,7 +14,7 @@
         <div>{{ viewInfo?.title }}</div>
         <div class="export-button">
           <el-select
-            v-if="optType === 'enlarge' && exportPermissions[0]"
+            v-if="optType === 'enlarge' && exportPermissions[0] && cacheExportConfig.image"
             v-model="pixel"
             class="pixel-select"
             size="small"
@@ -30,7 +30,7 @@
           </el-select>
           <el-button
             class="m-button"
-            v-if="optType === 'enlarge' && exportPermissions[0]"
+            v-if="optType === 'enlarge' && exportPermissions[0] && cacheExportConfig.image"
             link
             size="middle"
             @click="downloadViewImage"
@@ -42,7 +42,7 @@
           </el-button>
           <el-button
             class="m-button"
-            v-if="optType === 'details' && exportPermissions[1]"
+            v-if="optType === 'details' && exportPermissions[1] && cacheExportConfig.excel"
             link
             size="middle"
             :loading="exportLoading"
@@ -59,7 +59,7 @@
           </el-button>
           <el-button
             class="m-button"
-            v-if="optType === 'details' && exportPermissions[2]"
+            v-if="optType === 'details' && exportPermissions[2] && cacheExportConfig.raw"
             link
             size="middle"
             :loading="exportLoading"
@@ -76,7 +76,12 @@
           </el-button>
           <el-button
             class="m-button"
-            v-if="optType === 'details' && exportPermissions[2] && viewInfo.type === 'table-pivot'"
+            v-if="
+              optType === 'details' &&
+              exportPermissions[2] &&
+              viewInfo.type === 'table-pivot' &&
+              cacheExportConfig.pivot
+            "
             link
             size="middle"
             :loading="exportLoading"
@@ -90,7 +95,11 @@
           <el-divider
             class="close-divider"
             direction="vertical"
-            v-if="exportPermissions[0] || exportPermissions[1] || exportPermissions[2]"
+            v-if="
+              (exportPermissions[0] && cacheExportConfig.image) ||
+              (exportPermissions[1] && cacheExportConfig.excel) ||
+              (exportPermissions[2] && (cacheExportConfig.raw || cacheExportConfig.pivot))
+            "
           />
         </div>
       </div>
@@ -189,6 +198,32 @@ import JsPDF from 'jspdf'
 const downLoading = ref(false)
 const dvMainStore = dvMainStoreWithOut()
 const dialogShow = ref(false)
+
+const cacheExportConfig = ref({
+  image: true,
+  excel: true,
+  raw: true,
+  pivot: true
+})
+
+const updateCacheExportConfig = () => {
+  try {
+    const cacheStr =
+      sessionStorage.getItem('DE_EXPORT_CONFIG') || localStorage.getItem('DE_EXPORT_CONFIG')
+    if (cacheStr) {
+      const config = JSON.parse(cacheStr)
+      cacheExportConfig.value = {
+        image: config.image ?? true,
+        excel: config.excel ?? true,
+        raw: config.raw ?? true,
+        pivot: config.pivot ?? true
+      }
+    }
+  } catch (e) {
+    console.warn('解析导出缓存配置 DE_EXPORT_CONFIG 失败', e)
+  }
+}
+
 const requestStore = useRequestStoreWithOut()
 const permissionStore = usePermissionStoreWithOut()
 let viewInfo = ref<DeepPartial<ChartObj>>(null)
@@ -305,6 +340,7 @@ const pixelOptions = [
   }
 ]
 const dialogInit = (canvasStyle, view, item, opt, params = { scale: 0.5 }) => {
+  updateCacheExportConfig()
   state.scale = params.scale
   sourceViewType.value = view.type
   detailsError.value = false
